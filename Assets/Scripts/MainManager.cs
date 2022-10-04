@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -11,6 +12,7 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text BestScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
@@ -18,9 +20,18 @@ public class MainManager : MonoBehaviour
     
     private bool m_GameOver = false;
 
+    private int maxScore;
+
+    [System.Serializable]
+    public class SaveData
+    {
+        public string name;
+        public int score;
+    }
+
     
     // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
@@ -36,6 +47,8 @@ public class MainManager : MonoBehaviour
                 brick.onDestroyed.AddListener(AddPoint);
             }
         }
+
+        LoadScore();
     }
 
     private void Update()
@@ -72,5 +85,37 @@ public class MainManager : MonoBehaviour
     {
         m_GameOver = true;
         GameOverText.SetActive(true);
+        if (m_Points > maxScore)
+        {
+            SaveScore();
+        }
+    }
+
+    private void SaveScore()
+    {
+        SaveData data = new SaveData();
+        data.name = MenuManager.Instance.playerName;
+        data.score = m_Points;
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+    }
+
+    private void LoadScore()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+            maxScore = data.score;
+
+            if (maxScore >= 0)
+            {
+                BestScoreText.text = "Best Score : " + data.name + " : " + maxScore;
+            }
+        }
     }
 }

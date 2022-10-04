@@ -34,11 +34,15 @@ public class MenuManager : MonoBehaviour
     }
 
     private void Update() {
-        playerName = inputField.text;
+        if (SceneManager.GetActiveScene().name == "menu")
+        {
+            playerName = inputField.text;
+        }
     }
 
     public void StartGame() 
     {
+        SaveName();
         SceneManager.LoadScene("main");
     }
 
